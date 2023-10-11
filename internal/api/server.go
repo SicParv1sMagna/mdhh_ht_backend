@@ -15,10 +15,12 @@ func (a *Application) StartServer() {
 
 	user := router.Group("/user")
 	{
+		//	localhost:8080/user/register
 		user.POST("/register", func(ctx *gin.Context) {
 			delivery.RegisterUser(a.repository, ctx)
 		})
 
+		//	localhost:8080/user/login
 		user.POST("/login", func(ctx *gin.Context) {
 			delivery.AuthUser(a.repository, store, ctx)
 		})
