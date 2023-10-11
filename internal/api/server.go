@@ -1,22 +1,31 @@
 package api
 
 import (
-	"net/http"
+	"log"
 
+	"github.com/SicParv1sMagna/mdhh_backend/internal/delivery"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/sessions"
 )
 
 func (a *Application) StartServer() {
 	router := gin.Default()
 
+	store := sessions.NewCookieStore([]byte("SuperSecretKey"))
+
 	user := router.Group("/user")
 	{
 		user.POST("/register", func(ctx *gin.Context) {
-			ctx.JSON(http.StatusOK, gin.H{})
+			delivery.RegisterUser(a.repository, ctx)
 		})
 
 		user.POST("/login", func(ctx *gin.Context) {
-			ctx.JSON(http.StatusOK, gin.H{})
+			delivery.AuthUser(a.repository, store, ctx)
 		})
+	}
+
+	err := router.Run()
+	if err != nil {
+		log.Fatalf("error, while running the server")
 	}
 }
