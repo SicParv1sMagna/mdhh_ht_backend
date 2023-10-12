@@ -8,4 +8,6 @@ type User struct {
 	Email          string `json:"Email"`
 	Password       string `json:"Password" gorm:"column:Password"`
 	RepeatPassword string `json:"rPassword" gorm:"-"`
+	IsConfirmed    bool   `json:"confirmationCode"`
+	AccessToken    string `gorm:"column:accesstoken"`
 }
