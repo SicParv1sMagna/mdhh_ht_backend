@@ -87,7 +87,10 @@ func AuthUser(repository *repository.Repository, store *sessions.CookieStore, c 
 	}
 
 	session.Options = &sessions.Options{
-		MaxAge: 3600 * 3,
+		Path:     "/",
+		MaxAge:   3600 * 3,
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
 	}
 
 	session.Values["userID"] = candidate.User_ID
@@ -96,6 +99,8 @@ func AuthUser(repository *repository.Repository, store *sessions.CookieStore, c 
 		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
+
+	c.JSON(http.StatusOK, session)
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "авторизован",
