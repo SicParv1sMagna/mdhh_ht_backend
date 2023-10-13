@@ -16,7 +16,7 @@ func (a *Application) StartServer() {
 
 	// Настройка CORS
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:3000"}
+	config.AllowOrigins = []string{"http://localhost"}
 	router.Use(cors.New(config))
 
 	sender, err := emailsender.New()
@@ -47,7 +47,7 @@ func (a *Application) StartServer() {
 		})
 	}
 
-	err = router.Run()
+	err = router.Run(":80")
 	if err != nil {
 		log.Fatalf("error, while running the server")
 	}
