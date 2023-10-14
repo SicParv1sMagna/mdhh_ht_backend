@@ -22,7 +22,7 @@ func RegisterUser(repository *repository.Repository, c *gin.Context, s *email.Em
 	}
 	fmt.Println(user)
 	if err := validators.ValidateRegistrationData(user); err != nil {
-		c.JSON(http.StatusBadRequest, err)
+		c.JSON(http.StatusBadRequest, err.Error())
 		return
 	}
 
