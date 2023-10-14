@@ -25,7 +25,7 @@ var upgrader = websocket.Upgrader{
 func GetAllBranches(repository *repository.Repository, c *gin.Context) {
 	branches, err := repository.GetAllBranches()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -34,13 +34,13 @@ func GetAllBranches(repository *repository.Repository, c *gin.Context) {
 	for _, branch := range branches {
 		openHours, err := decode.UnmarshalOpenHours(branch.OpenHours)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, err)
+			c.JSON(http.StatusInternalServerError, err.Error())
 			return
 		}
 
 		openHoursIndividual, err := decode.UnmarshalOpenHours(branch.OpenHoursIndividual)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, err)
+			c.JSON(http.StatusInternalServerError, err.Error())
 			return
 		}
 
@@ -80,7 +80,7 @@ func GetBranchBySearch(repository *repository.Repository, c *gin.Context) {
 
 	branches, err := repository.GetBranchBySearch(search)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -89,13 +89,13 @@ func GetBranchBySearch(repository *repository.Repository, c *gin.Context) {
 	for _, branch := range branches {
 		openHours, err := decode.UnmarshalOpenHours(branch.OpenHours)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, err)
+			c.JSON(http.StatusInternalServerError, err.Error())
 			return
 		}
 
 		openHoursIndividual, err := decode.UnmarshalOpenHours(branch.OpenHoursIndividual)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, err)
+			c.JSON(http.StatusInternalServerError, err.Error())
 			return
 		}
 
@@ -131,7 +131,7 @@ func GetBranchBySearch(repository *repository.Repository, c *gin.Context) {
 func GetBranchById(repository *repository.Repository, c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -139,19 +139,19 @@ func GetBranchById(repository *repository.Repository, c *gin.Context) {
 
 	branch, err = repository.GetBranchById(id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	openHours, err := decode.UnmarshalOpenHours(branch.OpenHours)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	openHoursIndividual, err := decode.UnmarshalOpenHours(branch.OpenHoursIndividual)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -181,7 +181,13 @@ func GetBranchById(repository *repository.Repository, c *gin.Context) {
 	c.JSON(http.StatusOK, branchResponse)
 }
 
-func GetNearestBranches(repository *repository.Repository, latitude string, longitude string) ([]model.BusinessResponse, error) {
+func GetNearestBranches(repository *repository.Repository, latitude string, longitude string, searchRadius float64) ([]model.BusinessResponse, error) {
+	var nearestBranches []model.BusinessResponse
+
+	if searchRadius > 30 {
+		return nil, nil
+	}
+
 	lat, err := strconv.ParseFloat(latitude, 64)
 	if err != nil {
 		return nil, err
@@ -197,10 +203,6 @@ func GetNearestBranches(repository *repository.Repository, latitude string, long
 		return nil, err
 	}
 
-	var nearestBranches []model.BusinessResponse
-
-	searchRadius := 1000.0
-
 	for _, branch := range branches {
 		distance := distance.Harvesine(lat, lng, branch.Latitude, branch.Longitude)
 
@@ -213,12 +215,16 @@ func GetNearestBranches(repository *repository.Repository, latitude string, long
 		}
 	}
 
+	if len(nearestBranches) == 0 {
+		GetNearestBranches(repository, latitude, longitude, searchRadius+5)
+	}
+
 	return nearestBranches, nil
 }
 
 func failOnError(err error, msg string) {
 	if err != nil {
-		log.Panicf("%s: %s", msg, err)
+		log.Panicf("%s: %s", msg, err.Error())
 	}
 }
 
@@ -269,7 +275,7 @@ func GetBranchesWithTalons(repository *repository.Repository, c *gin.Context) {
 		return
 	}
 
-	nearestBranches, err := GetNearestBranches(repository, latitude, longitude)
+	nearestBranches, err := GetNearestBranches(repository, latitude, longitude, 1000.0)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "fail",

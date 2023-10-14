@@ -17,7 +17,7 @@ func RegisterUser(repository *repository.Repository, c *gin.Context, s *email.Em
 	var user model.User
 
 	if err := c.BindJSON(&user); err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 	fmt.Println(user)
@@ -31,7 +31,7 @@ func RegisterUser(repository *repository.Repository, c *gin.Context, s *email.Em
 
 	candidate, err := repository.GetUserByEmail(user.Email)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -44,7 +44,7 @@ func RegisterUser(repository *repository.Repository, c *gin.Context, s *email.Em
 
 	user.Password, err = password.HashPassword(user.Password)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -56,13 +56,13 @@ func RegisterUser(repository *repository.Repository, c *gin.Context, s *email.Em
 	err = s.SendConfirmationEmail(uniqueCode, user.Email)
 	if err != nil {
 		fmt.Println(err)
-		c.JSON(http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	err = repository.CreateUser(user)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -74,7 +74,7 @@ func RegisterUser(repository *repository.Repository, c *gin.Context, s *email.Em
 func ConfirmRegistration(repository *repository.Repository, c *gin.Context) {
 	var jsonData map[string]interface{}
 	if err := c.BindJSON(&jsonData); err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -96,7 +96,7 @@ func ConfirmRegistration(repository *repository.Repository, c *gin.Context) {
 
 	err = repository.ConfirmRegistration(candidate.Email)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -109,19 +109,19 @@ func AuthUser(repository *repository.Repository, store *sessions.CookieStore, c 
 	var user model.User
 
 	if err := c.BindJSON(&user); err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	fmt.Println(user)
 	if err := validators.ValidateAuthorizationData(user); err != nil {
-		c.JSON(http.StatusBadRequest, err)
+		c.JSON(http.StatusBadRequest, err.Error())
 		return
 	}
 
 	candidate, err := repository.GetUserByEmail(user.Email)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -134,7 +134,7 @@ func AuthUser(repository *repository.Repository, store *sessions.CookieStore, c 
 
 	session, err := store.Get(c.Request, "J_SESSION")
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -148,7 +148,7 @@ func AuthUser(repository *repository.Repository, store *sessions.CookieStore, c 
 	session.Values["userID"] = candidate.User_ID
 
 	if err := session.Save(c.Request, c.Writer); err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -160,7 +160,7 @@ func AuthUser(repository *repository.Repository, store *sessions.CookieStore, c 
 func ResendConfirmationCode(repository *repository.Repository, c *gin.Context, s *email.EmailSender) {
 	var jsonData map[string]interface{}
 	if err := c.BindJSON(&jsonData); err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -176,12 +176,12 @@ func ResendConfirmationCode(repository *repository.Repository, c *gin.Context, s
 
 	err := s.SendConfirmationEmail(uniqueCode, uEmail)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, err)
+		c.JSON(http.StatusBadRequest, err.Error())
 	}
 
 	err = repository.UpdateUserAccessToken(uEmail, uniqueCode)
 	if err != nil {
-		c.JSON(http.StatusOK, err)
+		c.JSON(http.StatusOK, err.Error())
 	}
 
 	c.JSON(http.StatusOK, gin.H{
