@@ -3,15 +3,14 @@ package delivery
 import (
 	"context"
 	"encoding/json"
-	"log"
-	"net/http"
-	"strconv"
-	"time"
-
 	"github.com/SicParv1sMagna/mdhh_backend/internal/model"
 	"github.com/SicParv1sMagna/mdhh_backend/internal/repository"
 	"github.com/gin-gonic/gin"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"log"
+	"net/http"
+	"strconv"
+	"time"
 )
 
 //func getFailJson(msg string) ([]byte, error) {
@@ -25,7 +24,7 @@ import (
 //}
 
 func pushNotification(response model.BusinessResponse) {
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:15672/")
+	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 
@@ -132,7 +131,7 @@ func DeleteTalon(repository *repository.Repository, c *gin.Context) {
 
 	talon, err := repository.GetTalonById(id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err.Error())
+		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
