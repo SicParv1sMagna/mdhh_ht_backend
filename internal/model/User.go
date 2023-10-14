@@ -11,3 +11,10 @@ type User struct {
 	IsConfirmed    bool   `json:"confirmationCode"`
 	AccessToken    string `gorm:"column:accesstoken"`
 }
+
+type Talon struct {
+	ID          int  `json:"id,omitempty"`
+	LegalEntity bool `json:"legalEntity"`
+	UserID      int  `json:"userId"`
+	BranchID    int  `json:"branchId"`
+}

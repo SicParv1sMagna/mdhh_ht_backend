@@ -47,7 +47,18 @@ func (a *Application) StartServer() {
 		})
 	}
 
-	err = router.Run(":80")
+	moderator := router.Group("/api/moderator")
+	{
+		moderator.POST("/talon", func(ctx *gin.Context) {
+			delivery.AddTalon(a.repository, ctx)
+		})
+
+		moderator.DELETE("/talon", func(ctx *gin.Context) {
+			delivery.DeleteTalon(a.repository, ctx)
+		})
+	}
+
+	err = router.Run()
 	if err != nil {
 		log.Fatalf("error, while running the server")
 	}
