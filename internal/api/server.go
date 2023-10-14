@@ -72,6 +72,11 @@ func (a *Application) StartServer() {
 			})
 		}
 
+		atm := api.Group("/atm")
+		{
+
+		}
+
 		moderator := api.Group("/moderator")
 		{
 			moderator.POST("/talon", func(ctx *gin.Context) {
