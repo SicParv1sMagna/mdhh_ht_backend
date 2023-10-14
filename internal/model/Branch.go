@@ -1,5 +1,10 @@
 package model
 
+type BusinessResponse struct {
+	ID         int `json:"id"`
+	TalonCount int `json:"talonCount"`
+}
+
 type Branch struct {
 	Branch_ID           int     `gorm:"column:id;primary_key"`
 	SalePointName       string  `gorm:"column:salePointName"`
@@ -20,7 +25,7 @@ type Branch struct {
 	MyBranch            bool    `gorm:"column:myBranch"`
 	Network             string  `gorm:"column:network"`
 	SalePointCode       string  `gorm:"column:salePointCode"`
-	TalonCount          int64   `gorm:"columnd: talonCount"`
+	TalonCount          int     `gorm:"column:talonCount"`
 }
 
 type BranchResponse struct {
@@ -43,7 +48,7 @@ type BranchResponse struct {
 	MyBranch            bool            `json:"myBranch"`
 	Network             string          `json:"network"`
 	SalePointCode       string          `json:"salePointCode"`
-	TalonCount          int64           `json:"talonCount"`
+	TalonCount          int             `json:"talonCount"`
 }
 
 type OpenHoursType struct {

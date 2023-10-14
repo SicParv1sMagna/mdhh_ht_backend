@@ -34,3 +34,12 @@ func (r *Repository) GetBranchById(id int) (model.Branch, error) {
 
 	return branch, nil
 }
+
+func (r *Repository) UpdateBranchTalonCount(id int, count int) error {
+	result := r.db.Table("Branch").Where("id = ?", id).Update("talonCount", count)
+
+	if err := result.Error; err != nil {
+		return err
+	}
+	return nil
+}

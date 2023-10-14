@@ -21,3 +21,14 @@ func (r *Repository) AddTalon(talon *model.Talon) error {
 
 	return nil
 }
+
+func (r *Repository) GetTalonById(id int) (model.Talon, error) {
+	var talon model.Talon
+
+	err := r.db.Table("Talon").Where(`"id" = ?`, id).First(&talon).Error
+	if err != nil {
+		return talon, err
+	}
+
+	return talon, nil
+}
