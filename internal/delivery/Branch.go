@@ -1,6 +1,9 @@
 package delivery
 
 import (
+	"net/http"
+	"strconv"
+
 	"github.com/SicParv1sMagna/mdhh_backend/internal/model"
 	"github.com/SicParv1sMagna/mdhh_backend/internal/pkg/middleware/decode"
 	"github.com/SicParv1sMagna/mdhh_backend/internal/repository"
@@ -8,8 +11,6 @@ import (
 	"github.com/gorilla/websocket"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"log"
-	"net/http"
-	"strconv"
 )
 
 var upgrader = websocket.Upgrader{
@@ -75,6 +76,7 @@ func GetBranchBySearch(repository *repository.Repository, c *gin.Context) {
 	branches, err := repository.GetBranchBySearch(search)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err)
+		return
 	}
 
 	var branchResponses []model.BranchResponse
@@ -121,7 +123,55 @@ func GetBranchBySearch(repository *repository.Repository, c *gin.Context) {
 }
 
 func GetBranchById(repository *repository.Repository, c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err)
+		return
+	}
 
+	var branch model.Branch
+
+	branch, err = repository.GetBranchById(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	openHours, err := decode.UnmarshalOpenHours(branch.OpenHours)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	openHoursIndividual, err := decode.UnmarshalOpenHours(branch.OpenHoursIndividual)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	branchResponse := model.BranchResponse{
+		Branch_ID:           branch.Branch_ID,
+		SalePointName:       branch.SalePointName,
+		Address:             branch.Address,
+		Status:              branch.Status,
+		OpenHours:           openHours,
+		RKO:                 branch.RKO,
+		OpenHoursIndividual: openHoursIndividual,
+		OfficeType:          branch.OfficeType,
+		SalePointFormat:     branch.SalePointFormat,
+		SUOAvailability:     branch.SUOAvailability,
+		HasRamp:             branch.HasRamp,
+		Latitude:            branch.Latitude,
+		Longitude:           branch.Longitude,
+		MetroStation:        branch.MetroStation,
+		Distance:            branch.Distance,
+		KEP:                 branch.KEP,
+		MyBranch:            branch.MyBranch,
+		Network:             branch.Network,
+		SalePointCode:       branch.SalePointCode,
+	}
+
+	c.JSON(http.StatusOK, branchResponse)
 }
 
 func GetNearestBranches(latitude string, longitude string) ([]model.Branch, error) {

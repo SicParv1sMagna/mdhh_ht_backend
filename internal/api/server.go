@@ -61,6 +61,7 @@ func (a *Application) StartServer() {
 				delivery.GetBranchBySearch(a.repository, ctx)
 			})
 
+			//	http://localhost:8080/api/branches/get-branch-by-id
 			branches.GET("/get-branch-by-id/:id", func(ctx *gin.Context) {
 				delivery.GetBranchById(a.repository, ctx)
 			})
