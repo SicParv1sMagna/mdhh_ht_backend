@@ -88,6 +88,7 @@ func ConfirmRegistration(repository *repository.Repository, c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "ошибка при попытке определить код",
 		})
+		return
 	}
 
 	err = repository.ConfirmRegistration(candidate.Email)
