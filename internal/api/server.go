@@ -72,10 +72,10 @@ func (a *Application) StartServer() {
 			})
 		}
 
-		atm := api.Group("/atm")
-		{
-
-		}
+		//atm := api.Group("/atm")
+		//{
+		//
+		//}
 
 		moderator := api.Group("/moderator")
 		{
