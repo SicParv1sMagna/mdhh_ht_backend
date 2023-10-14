@@ -181,7 +181,13 @@ func GetBranchById(repository *repository.Repository, c *gin.Context) {
 	c.JSON(http.StatusOK, branchResponse)
 }
 
-func GetNearestBranches(repository *repository.Repository, latitude string, longitude string) ([]model.BusinessResponse, error) {
+func GetNearestBranches(repository *repository.Repository, latitude string, longitude string, searchRadius float64) ([]model.BusinessResponse, error) {
+	var nearestBranches []model.BusinessResponse
+
+	if searchRadius > 30 {
+		return nil, nil
+	}
+
 	lat, err := strconv.ParseFloat(latitude, 64)
 	if err != nil {
 		return nil, err
@@ -197,10 +203,6 @@ func GetNearestBranches(repository *repository.Repository, latitude string, long
 		return nil, err
 	}
 
-	var nearestBranches []model.BusinessResponse
-
-	searchRadius := 1000.0
-
 	for _, branch := range branches {
 		distance := distance.Harvesine(lat, lng, branch.Latitude, branch.Longitude)
 
@@ -211,6 +213,10 @@ func GetNearestBranches(repository *repository.Repository, latitude string, long
 			}
 			nearestBranches = append(nearestBranches, businessResponse)
 		}
+	}
+
+	if len(nearestBranches) == 0 {
+		GetNearestBranches(repository, latitude, longitude, searchRadius+5)
 	}
 
 	return nearestBranches, nil
@@ -261,7 +267,7 @@ func GetBranchesWithTalons(repository *repository.Repository, c *gin.Context) {
 	latitude := c.DefaultQuery("latitude", "")
 	longitude := c.DefaultQuery("longitude", "")
 
-	nearestBranches, err := GetNearestBranches(repository, latitude, longitude)
+	nearestBranches, err := GetNearestBranches(repository, latitude, longitude, 1000.0)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "fail",
