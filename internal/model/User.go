@@ -12,10 +12,3 @@ type User struct {
 	AccessToken    string `gorm:"column:accesstoken"`
 	LegalEntity    bool   `json:"LegalEntity" gorm:"column:legalentity"`
 }
-
-type Talon struct {
-	ID          int  `json:"id,omitempty"`
-	LegalEntity bool `json:"legalEntity"`
-	UserID      int  `json:"userId"`
-	BranchID    int  `json:"branchId"`
-}

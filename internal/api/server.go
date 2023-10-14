@@ -64,9 +64,14 @@ func (a *Application) StartServer() {
 			branches.GET("/get-branch-by-id/:id", func(ctx *gin.Context) {
 				delivery.GetBranchById(a.repository, ctx)
 			})
+
+			//	http://localhost:8080/api/branches/get-nearest-branches-with-talons?latitude&&longitude
+			branches.GET("/ws/get-nearest-branches-with-talons", func(ctx *gin.Context) {
+				delivery.GetBranchesWithTalons(a.repository, ctx)
+			})
 		}
 
-		moderator := router.Group("/moderator")
+		moderator := api.Group("/moderator")
 		{
 			moderator.POST("/talon", func(ctx *gin.Context) {
 				delivery.AddTalon(a.repository, ctx)
