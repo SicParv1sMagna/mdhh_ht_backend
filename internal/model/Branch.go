@@ -20,6 +20,7 @@ type Branch struct {
 	MyBranch            bool    `gorm:"column:myBranch"`
 	Network             string  `gorm:"column:network"`
 	SalePointCode       string  `gorm:"column:salePointCode"`
+	TalonCount          int64   `gorm:"columnd: talonCount"`
 }
 
 type BranchResponse struct {
@@ -42,6 +43,7 @@ type BranchResponse struct {
 	MyBranch            bool            `json:"myBranch"`
 	Network             string          `json:"network"`
 	SalePointCode       string          `json:"salePointCode"`
+	TalonCount          int64           `json:"talonCount"`
 }
 
 type OpenHoursType struct {
