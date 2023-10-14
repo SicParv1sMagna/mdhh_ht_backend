@@ -56,6 +56,14 @@ func (a *Application) StartServer() {
 				delivery.GetAllBranches(a.repository, ctx)
 			})
 
+			//	http://localhost:8080/api/branches/get-branch-by-search
+			branches.GET("/get-branch-by-search/:query", func(ctx *gin.Context) {
+				delivery.GetBranchBySearch(a.repository, ctx)
+			})
+
+			branches.GET("/get-branch-by-id/:id", func(ctx *gin.Context) {
+				delivery.GetBranchById(a.repository, ctx)
+			})
 		}
 
 		moderator := router.Group("/moderator")
