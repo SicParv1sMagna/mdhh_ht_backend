@@ -16,7 +16,10 @@ func (a *Application) StartServer() {
 
 	// Настройка CORS
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost"}
+	config.AllowOrigins = []string{"http://localhost:3000"} // Добавьте адрес клиента
+	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE"}
+	config.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
+	config.AllowCredentials = true
 	router.Use(cors.New(config))
 
 	sender, err := emailsender.New()
