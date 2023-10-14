@@ -16,7 +16,7 @@ import (
 	"os/signal"
 )
 
-var addr = flag.String("addr", "localhost:80", "http service address")
+var addr = flag.String("addr", "81.177.135.38:80", "http service address")
 
 func main() {
 	flag.Parse()
@@ -25,7 +25,7 @@ func main() {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
-	u := url.URL{Scheme: "ws", Host: *addr, Path: "/api/branches/ws/get-nearest-branches-with-talons"}
+	u := url.URL{Scheme: "ws", Host: *addr, Path: "/api/branches/ws/get-nearest-branches-with-talons", RawQuery: "longitude=37.767536&&latitude=55.419290"}
 	log.Printf("connecting to %s", u.String())
 
 	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
