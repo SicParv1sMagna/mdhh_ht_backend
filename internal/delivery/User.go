@@ -22,7 +22,10 @@ func RegisterUser(repository *repository.Repository, c *gin.Context, s *email.Em
 	}
 	fmt.Println(user)
 	if err := validators.ValidateRegistrationData(user); err != nil {
-		c.JSON(http.StatusBadRequest, err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": err.Error(),
+		})
+		fmt.Println(err)
 		return
 	}
 
@@ -49,7 +52,7 @@ func RegisterUser(repository *repository.Repository, c *gin.Context, s *email.Em
 
 	user.AccessToken = uniqueCode
 
-	fmt.Println(uniqueCode, user.Email)
+	fmt.Println(user.Email)
 	err = s.SendConfirmationEmail(uniqueCode, user.Email)
 	if err != nil {
 		fmt.Println(err)
@@ -63,7 +66,7 @@ func RegisterUser(repository *repository.Repository, c *gin.Context, s *email.Em
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
+	c.JSON(http.StatusOK, gin.H{
 		"message": "пользователь зарегестрирован",
 	})
 }
