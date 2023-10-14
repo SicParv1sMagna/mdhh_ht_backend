@@ -39,10 +39,6 @@ func ValidateRegistrationData(user model.User) error {
 }
 
 func ValidateAuthorizationData(user model.User) error {
-	if !user.IsConfirmed {
-		return errors.New("аккаунт не подтвержден")
-	}
-
 	if user.Email == "" || user.Password == "" {
 		return errors.New("заполните все поля")
 	}
