@@ -267,6 +267,14 @@ func GetBranchesWithTalons(repository *repository.Repository, c *gin.Context) {
 	latitude := c.DefaultQuery("latitude", "")
 	longitude := c.DefaultQuery("longitude", "")
 
+	if latitude == "" || longitude == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  "fail",
+			"message": "empty query params",
+		})
+		return
+	}
+
 	nearestBranches, err := GetNearestBranches(repository, latitude, longitude, 1000.0)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{

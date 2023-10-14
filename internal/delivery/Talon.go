@@ -3,15 +3,14 @@ package delivery
 import (
 	"context"
 	"encoding/json"
-	"log"
-	"net/http"
-	"strconv"
-	"time"
-
 	"github.com/SicParv1sMagna/mdhh_backend/internal/model"
 	"github.com/SicParv1sMagna/mdhh_backend/internal/repository"
 	"github.com/gin-gonic/gin"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"log"
+	"net/http"
+	"strconv"
+	"time"
 )
 
 //func getFailJson(msg string) ([]byte, error) {
@@ -132,7 +131,7 @@ func DeleteTalon(repository *repository.Repository, c *gin.Context) {
 
 	talon, err := repository.GetTalonById(id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err.Error())
+		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
