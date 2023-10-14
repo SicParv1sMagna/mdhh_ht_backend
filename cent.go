@@ -39,6 +39,22 @@ func main() {
 	//var talon model.Talon
 	go func() {
 		defer close(done)
+
+		_, message, err := c.ReadMessage()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		var data []model.BusinessResponse
+		err = json.Unmarshal(message, &data)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		fmt.Printf("Получено первое сообщение: %+v\n", data)
+
 		for {
 
 			_, message, err := c.ReadMessage()
@@ -47,8 +63,7 @@ func main() {
 				return
 			}
 
-			// Десериализация JSON
-			var data model.Talon // Замените YourStruct на вашу структуру данных
+			var data model.BusinessResponse
 			err = json.Unmarshal(message, &data)
 			if err != nil {
 				fmt.Println(err)

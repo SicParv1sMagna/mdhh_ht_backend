@@ -1,6 +1,8 @@
 package delivery
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -60,6 +62,7 @@ func GetAllBranches(repository *repository.Repository, c *gin.Context) {
 			MyBranch:            branch.MyBranch,
 			Network:             branch.Network,
 			SalePointCode:       branch.SalePointCode,
+			TalonCount:          branch.TalonCount,
 		}
 
 		branchResponses = append(branchResponses, response)
@@ -114,6 +117,7 @@ func GetBranchBySearch(repository *repository.Repository, c *gin.Context) {
 			MyBranch:            branch.MyBranch,
 			Network:             branch.Network,
 			SalePointCode:       branch.SalePointCode,
+			TalonCount:          branch.TalonCount,
 		}
 
 		branchResponses = append(branchResponses, response)
@@ -169,15 +173,24 @@ func GetBranchById(repository *repository.Repository, c *gin.Context) {
 		MyBranch:            branch.MyBranch,
 		Network:             branch.Network,
 		SalePointCode:       branch.SalePointCode,
+		TalonCount:          branch.TalonCount,
 	}
 
 	c.JSON(http.StatusOK, branchResponse)
 }
 
-func GetNearestBranches(latitude string, longitude string) ([]model.Branch, error) {
-	return []model.Branch{
-		model.Branch{Branch_ID: 1},
-	}, nil
+func GetNearestBranches(repository *repository.Repository, latitude string, longitude string) ([]model.BusinessResponse, error) {
+	var response []model.BusinessResponse
+
+	for i := 1; i < 11; i++ {
+		branch, err := repository.GetBranchById(i)
+		if err != nil {
+			return []model.BusinessResponse{}, err
+		}
+
+		response = append(response, model.BusinessResponse{ID: branch.Branch_ID, TalonCount: branch.TalonCount})
+	}
+	return response, nil
 }
 
 func failOnError(err error, msg string) {
@@ -186,11 +199,46 @@ func failOnError(err error, msg string) {
 	}
 }
 
+//func toResponseBranch(branch model.Branch) (model.BranchResponse, error) {
+//	openHours, err := decode.UnmarshalOpenHours(branch.OpenHours)
+//	if err != nil {
+//		return model.BranchResponse{}, err
+//	}
+//
+//	openHoursIndividual, err := decode.UnmarshalOpenHours(branch.OpenHoursIndividual)
+//	if err != nil {
+//		return model.BranchResponse{}, err
+//	}
+//
+//	return model.BranchResponse{
+//		Branch_ID:           branch.Branch_ID,
+//		SalePointName:       branch.SalePointName,
+//		Address:             branch.Address,
+//		Status:              branch.Status,
+//		OpenHours:           openHours,
+//		RKO:                 branch.RKO,
+//		OpenHoursIndividual: openHoursIndividual,
+//		OfficeType:          branch.OfficeType,
+//		SalePointFormat:     branch.SalePointFormat,
+//		SUOAvailability:     branch.SUOAvailability,
+//		HasRamp:             branch.HasRamp,
+//		Latitude:            branch.Latitude,
+//		Longitude:           branch.Longitude,
+//		MetroStation:        branch.MetroStation,
+//		Distance:            branch.Distance,
+//		KEP:                 branch.KEP,
+//		MyBranch:            branch.MyBranch,
+//		Network:             branch.Network,
+//		SalePointCode:       branch.SalePointCode,
+//		TalonCount:          branch.TalonCount,
+//	}, nil
+//}
+
 func GetBranchesWithTalons(repository *repository.Repository, c *gin.Context) {
 	latitude := c.DefaultQuery("latitude", "")
 	longitude := c.DefaultQuery("longitude", "")
 
-	branches, err := GetNearestBranches(latitude, longitude)
+	nearestBranches, err := GetNearestBranches(repository, latitude, longitude)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "fail",
@@ -199,9 +247,8 @@ func GetBranchesWithTalons(repository *repository.Repository, c *gin.Context) {
 		return
 	}
 
-	// TODO GetTalons
-
-	// to run rabbit docker run -it --rm --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3.12-management
+	// to run rabbit: docker run -it --rm --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3.12-management
+	// rabbit connect
 	ampqConn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer ampqConn.Close()
@@ -219,7 +266,13 @@ func GetBranchesWithTalons(repository *repository.Repository, c *gin.Context) {
 		false,         // no-wait
 		nil,           // arguments
 	)
-	failOnError(err, "Failed to declare an exchange")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  "\"Failed to declare an exchange\"",
+			"message": err.Error(),
+		})
+		return
+	}
 
 	q, err := ch.QueueDeclare(
 		"",    // name
@@ -229,19 +282,30 @@ func GetBranchesWithTalons(repository *repository.Repository, c *gin.Context) {
 		false, // no-wait
 		nil,   // arguments
 	)
-	failOnError(err, "Failed to declare a queue")
-
-	for _, br := range branches {
-		log.Printf("Binding queue %s to exchange %s with routing key %s",
-			q.Name, "logs_direct", br)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  "\"Failed to declare a queue\"",
+			"message": err.Error(),
+		})
+		return
+	}
+	for _, br := range nearestBranches {
+		log.Printf("Binding queue %s to exchange %s with routing key %d",
+			q.Name, "logs_direct", br.ID)
 
 		err = ch.QueueBind(
-			q.Name, // queue name
-			strconv.FormatInt(int64(br.Branch_ID), 10), // routing key
-			"logs_direct", // exchange
+			q.Name,                              // queue name
+			strconv.FormatInt(int64(br.ID), 10), // routing key
+			"logs_direct",                       // exchange
 			false,
 			nil)
-		failOnError(err, "Failed to bind a queue")
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "\"Failed to bind a queue\"",
+				"message": err.Error(),
+			})
+			return
+		}
 	}
 
 	msgs, err := ch.Consume(
@@ -253,20 +317,50 @@ func GetBranchesWithTalons(repository *repository.Repository, c *gin.Context) {
 		false,  // no wait
 		nil,    // args
 	)
-	failOnError(err, "Failed to register a consumer")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  "\"Failed to register a consumer\"",
+			"message": err.Error(),
+		})
+		return
+	}
 
+	// open websocket connection
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
+		log.Println("Error: ", err.Error())
 		return
 	}
 	defer conn.Close()
 
+	// send data
+	jsonData, err := json.Marshal(nearestBranches)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	err = conn.WriteMessage(websocket.TextMessage, jsonData)
+	if err != nil {
+		log.Println("Error: ", jsonData)
+	}
+	log.Println("Sent: ", nearestBranches)
+
+	// send new data (notifications)
 	for msg := range msgs {
 		err = conn.WriteMessage(websocket.TextMessage, msg.Body)
 		if err != nil {
-			log.Println("Error: ", msg)
+			log.Println("Error: ", err.Error())
+			return
 		}
-		return
+
+		var branch model.Branch
+		err = json.Unmarshal(msg.Body, &branch)
+		if err != nil {
+			log.Println("Error: ", err.Error())
+			return
+		}
+
+		log.Println("Sent: ", branch)
 	}
 
 	log.Printf(" [*] Waiting for logs. To exit press CTRL+C")

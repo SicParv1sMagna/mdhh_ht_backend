@@ -23,7 +23,7 @@ import (
 //	}
 //}
 
-func pushNotification(talon model.Talon) {
+func pushNotification(response model.BusinessResponse) {
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
@@ -46,12 +46,12 @@ func pushNotification(talon model.Talon) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	body, err := json.Marshal(talon)
+	body, err := json.Marshal(response)
 	failOnError(err, "Failed to marchall body")
 
 	err = ch.PublishWithContext(ctx,
 		"logs_direct", // exchange
-		strconv.FormatInt(int64(talon.BranchID), 10), // routing key
+		strconv.FormatInt(int64(response.ID), 10), // routing key
 		false, // mandatory
 		false, // immediate
 		amqp.Publishing{
@@ -83,7 +83,25 @@ func AddTalon(repository *repository.Repository, c *gin.Context) {
 		return
 	}
 
-	go pushNotification(talon)
+	var branch model.Branch
+	if branch, err = repository.GetBranchById(talon.BranchID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  "fail",
+			"message": err.Error(),
+		})
+		return
+	}
+
+	branch.TalonCount += 1
+	if err = repository.UpdateBranchTalonCount(branch.Branch_ID, branch.TalonCount); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  "fail",
+			"message": err.Error(),
+		})
+		return
+	}
+
+	go pushNotification(model.BusinessResponse{ID: branch.Branch_ID, TalonCount: branch.TalonCount})
 
 	c.JSON(http.StatusOK, gin.H{
 		"status": "success",
@@ -111,6 +129,21 @@ func DeleteTalon(repository *repository.Repository, c *gin.Context) {
 		return
 	}
 
+	talon, err := repository.GetTalonById(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	var branch model.Branch
+	if branch, err = repository.GetBranchById(talon.BranchID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  "fail",
+			"message": err.Error(),
+		})
+		return
+	}
+
 	if err = repository.DeleteTalon(id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "fail",
@@ -118,6 +151,17 @@ func DeleteTalon(repository *repository.Repository, c *gin.Context) {
 		})
 		return
 	}
+
+	branch.TalonCount -= 1
+	if err = repository.UpdateBranchTalonCount(branch.Branch_ID, branch.TalonCount); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  "fail",
+			"message": err.Error(),
+		})
+		return
+	}
+
+	go pushNotification(model.BusinessResponse{ID: branch.Branch_ID, TalonCount: branch.TalonCount})
 
 	c.JSON(http.StatusOK, gin.H{
 		"status": "success",
