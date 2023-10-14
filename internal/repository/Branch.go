@@ -23,3 +23,14 @@ func (r *Repository) GetBranchBySearch(search string) ([]model.Branch, error) {
 
 	return branches, nil
 }
+
+func (r *Repository) GetBranchById(id int) (model.Branch, error) {
+	var branch model.Branch
+
+	err := r.db.Table("Branch").Where(`"id" = ?`, id).First(&branch).Error
+	if err != nil {
+		return branch, err
+	}
+
+	return branch, nil
+}
