@@ -77,6 +77,7 @@ func (a *Application) StartServer() {
 
 		atm := api.Group("/atm")
 		{
+			// /api/atm/get-all-atm
 			atm.GET("/get-all-atm", func(ctx *gin.Context) {
 				delivery.GetAllAtms(a.repository, ctx)
 			})

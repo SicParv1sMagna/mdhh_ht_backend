@@ -25,7 +25,7 @@ var upgrader = websocket.Upgrader{
 func GetAllBranches(repository *repository.Repository, c *gin.Context) {
 	branches, err := repository.GetAllBranches()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -34,13 +34,13 @@ func GetAllBranches(repository *repository.Repository, c *gin.Context) {
 	for _, branch := range branches {
 		openHours, err := decode.UnmarshalOpenHours(branch.OpenHours)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, err)
+			c.JSON(http.StatusInternalServerError, err.Error())
 			return
 		}
 
 		openHoursIndividual, err := decode.UnmarshalOpenHours(branch.OpenHoursIndividual)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, err)
+			c.JSON(http.StatusInternalServerError, err.Error())
 			return
 		}
 
@@ -80,7 +80,7 @@ func GetBranchBySearch(repository *repository.Repository, c *gin.Context) {
 
 	branches, err := repository.GetBranchBySearch(search)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -89,13 +89,13 @@ func GetBranchBySearch(repository *repository.Repository, c *gin.Context) {
 	for _, branch := range branches {
 		openHours, err := decode.UnmarshalOpenHours(branch.OpenHours)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, err)
+			c.JSON(http.StatusInternalServerError, err.Error())
 			return
 		}
 
 		openHoursIndividual, err := decode.UnmarshalOpenHours(branch.OpenHoursIndividual)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, err)
+			c.JSON(http.StatusInternalServerError, err.Error())
 			return
 		}
 
@@ -131,7 +131,7 @@ func GetBranchBySearch(repository *repository.Repository, c *gin.Context) {
 func GetBranchById(repository *repository.Repository, c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -139,19 +139,19 @@ func GetBranchById(repository *repository.Repository, c *gin.Context) {
 
 	branch, err = repository.GetBranchById(id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	openHours, err := decode.UnmarshalOpenHours(branch.OpenHours)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	openHoursIndividual, err := decode.UnmarshalOpenHours(branch.OpenHoursIndividual)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -224,7 +224,7 @@ func GetNearestBranches(repository *repository.Repository, latitude string, long
 
 func failOnError(err error, msg string) {
 	if err != nil {
-		log.Panicf("%s: %s", msg, err)
+		log.Panicf("%s: %s", msg, err.Error())
 	}
 }
 
