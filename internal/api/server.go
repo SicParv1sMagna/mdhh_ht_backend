@@ -74,7 +74,17 @@ func (a *Application) StartServer() {
 
 		atm := api.Group("/atm")
 		{
+			atm.GET("/get-all-atm", func(ctx *gin.Context) {
+				delivery.GetAllAtms(a.repository, ctx)
+			})
 
+			atm.GET("/get-atm-by-id/:id", func(ctx *gin.Context) {
+				delivery.GetAtmById(a.repository, ctx)
+			})
+
+			atm.GET("/search-atm-by-name/:query", func(ctx *gin.Context) {
+				delivery.SearchAtmByName(a.repository, ctx)
+			})
 		}
 
 		moderator := api.Group("/moderator")
