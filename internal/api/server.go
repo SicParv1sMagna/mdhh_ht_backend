@@ -47,15 +47,26 @@ func (a *Application) StartServer() {
 		})
 	}
 
-	moderator := router.Group("/api/moderator")
+	api := router.Group("/api")
 	{
-		moderator.POST("/talon", func(ctx *gin.Context) {
-			delivery.AddTalon(a.repository, ctx)
-		})
+		branches := api.Group("/branches")
+		{
+			//	http://localhost:8080/api/branches/get-all-branches
+			branches.GET("/get-all-branches", func(ctx *gin.Context) {
+				delivery.GetAllBranches(a.repository, ctx)
+			})
+		}
 
-		moderator.DELETE("/talon", func(ctx *gin.Context) {
-			delivery.DeleteTalon(a.repository, ctx)
-		})
+		moderator := router.Group("/moderator")
+		{
+			moderator.POST("/talon", func(ctx *gin.Context) {
+				delivery.AddTalon(a.repository, ctx)
+			})
+
+			moderator.DELETE("/talon", func(ctx *gin.Context) {
+				delivery.DeleteTalon(a.repository, ctx)
+			})
+		}
 	}
 
 	err = router.Run()
