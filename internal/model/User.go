@@ -10,6 +10,7 @@ type User struct {
 	RepeatPassword string `json:"rPassword" gorm:"-"`
 	IsConfirmed    bool   `json:"confirmationCode"`
 	AccessToken    string `gorm:"column:accesstoken"`
+	LegalEntity    bool   `json:"LegalEntity" gorm:"column:legalentity"`
 }
 
 type Talon struct {

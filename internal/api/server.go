@@ -55,6 +55,7 @@ func (a *Application) StartServer() {
 			branches.GET("/get-all-branches", func(ctx *gin.Context) {
 				delivery.GetAllBranches(a.repository, ctx)
 			})
+
 		}
 
 		moderator := router.Group("/moderator")
