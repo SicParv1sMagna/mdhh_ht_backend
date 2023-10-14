@@ -6,13 +6,15 @@ import (
 	"net/http"
 	"strconv"
 
+	"log"
+
 	"github.com/SicParv1sMagna/mdhh_backend/internal/model"
 	"github.com/SicParv1sMagna/mdhh_backend/internal/pkg/middleware/decode"
+	"github.com/SicParv1sMagna/mdhh_backend/internal/pkg/middleware/distance"
 	"github.com/SicParv1sMagna/mdhh_backend/internal/repository"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	amqp "github.com/rabbitmq/amqp091-go"
-	"log"
 )
 
 var upgrader = websocket.Upgrader{
@@ -180,17 +182,38 @@ func GetBranchById(repository *repository.Repository, c *gin.Context) {
 }
 
 func GetNearestBranches(repository *repository.Repository, latitude string, longitude string) ([]model.BusinessResponse, error) {
-	var response []model.BusinessResponse
-
-	for i := 1; i < 11; i++ {
-		branch, err := repository.GetBranchById(i)
-		if err != nil {
-			return []model.BusinessResponse{}, err
-		}
-
-		response = append(response, model.BusinessResponse{ID: branch.Branch_ID, TalonCount: branch.TalonCount})
+	lat, err := strconv.ParseFloat(latitude, 64)
+	if err != nil {
+		return nil, err
 	}
-	return response, nil
+
+	lng, err := strconv.ParseFloat(longitude, 64)
+	if err != nil {
+		return nil, err
+	}
+
+	branches, err := repository.GetAllBranches()
+	if err != nil {
+		return nil, err
+	}
+
+	var nearestBranches []model.BusinessResponse
+
+	searchRadius := 1000.0
+
+	for _, branch := range branches {
+		distance := distance.Harvesine(lat, lng, branch.Latitude, branch.Longitude)
+
+		if distance <= searchRadius {
+			businessResponse := model.BusinessResponse{
+				ID:         branch.Branch_ID,
+				TalonCount: branch.TalonCount,
+			}
+			nearestBranches = append(nearestBranches, businessResponse)
+		}
+	}
+
+	return nearestBranches, nil
 }
 
 func failOnError(err error, msg string) {
