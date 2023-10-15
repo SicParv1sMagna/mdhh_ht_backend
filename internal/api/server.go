@@ -64,6 +64,14 @@ func (a *Application) StartServer() {
 			user.POST("/get-user-by-id", func(ctx *gin.Context) {
 				delivery.GetUserById(a.repository, store, ctx)
 			})
+
+			user.PUT("/edit-user-data", func(ctx *gin.Context) {
+				delivery.EditUserData(a.repository, store, ctx)
+			})
+
+			user.DELETE("/delete-user", func(ctx *gin.Context) {
+				delivery.DeleteUser(a.repository, store, ctx)
+			})
 		}
 
 		branches := api.Group("/branches")

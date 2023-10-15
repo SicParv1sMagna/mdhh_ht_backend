@@ -61,3 +61,15 @@ func (r *Repository) GetUserById(id int) (model.User, error) {
 
 	return user, nil
 }
+
+func (r *Repository) UpdateUserData(user *model.User) error {
+	err := r.db.Table("User").Update("Email, FirstName, SeondName, LegalEntity", &user).Error
+
+	return err
+}
+
+func (r *Repository) DeleteUser(id int) error {
+	err := r.db.Table("User").Where("User_ID = ?", id).Delete(&model.User{}).Error
+
+	return err
+}
