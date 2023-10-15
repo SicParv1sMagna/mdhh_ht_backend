@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/SicParv1sMagna/mdhh_backend/internal/pkg/middleware/auth"
 	"log"
 
 	"github.com/SicParv1sMagna/mdhh_backend/internal/delivery"
@@ -51,8 +52,9 @@ func (a *Application) StartServer() {
 	}
 
 	api := router.Group("/api")
+	api.Use(auth.AuthCheck(store))
 	{
-		user := router.Group("/users")
+		user := api.Group("/users")
 		{
 			user.POST("/logout", func(ctx *gin.Context) {
 				delivery.LogoutUser(a.repository, store, ctx)
