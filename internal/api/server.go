@@ -52,6 +52,13 @@ func (a *Application) StartServer() {
 
 	api := router.Group("/api")
 	{
+		user := router.Group("/user")
+		{
+			user.POST("/logout", func(ctx *gin.Context) {
+				delivery.LogoutUser(a.repository, store, ctx)
+			})
+		}
+
 		branches := api.Group("/branches")
 		{
 			//	http://localhost:8080/api/branches/get-all-branches

@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -113,7 +114,6 @@ func AuthUser(repository *repository.Repository, store *sessions.CookieStore, c 
 		return
 	}
 
-	fmt.Println(user)
 	if err := validators.ValidateAuthorizationData(user); err != nil {
 		c.JSON(http.StatusBadRequest, err.Error())
 		return
@@ -122,6 +122,11 @@ func AuthUser(repository *repository.Repository, store *sessions.CookieStore, c 
 	candidate, err := repository.GetUserByEmail(user.Email)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if !candidate.IsConfirmed {
+		c.JSON(http.StatusInternalServerError, errors.New("аккаунт не подтвержден"))
 		return
 	}
 
@@ -154,6 +159,27 @@ func AuthUser(repository *repository.Repository, store *sessions.CookieStore, c 
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "авторизован",
+	})
+}
+
+func LogoutUser(repository *repository.Repository, store *sessions.CookieStore, c *gin.Context) {
+	session, err := store.Get(c.Request, "J_SESSION")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	session.Values["userID"] = nil
+
+	session.Options.MaxAge = -1
+
+	if err := session.Save(c.Request, c.Writer); err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "вышел",
 	})
 }
 
