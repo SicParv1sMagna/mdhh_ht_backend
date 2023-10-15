@@ -7,5 +7,6 @@ type Route struct {
 	LongitudeEnd   float64 `json:"longitudeEnd" gorm:"longitudeEnd"`
 	LatitudeEnd    float64 `json:"latitudeEnd" gorm:"latitudeEnd"`
 	BranchID       int     `json:"branchId,omitempty" gorm:"branchID"`
-	AtmID          int     `json:"AtmId,omitempty" gorm:"AtmID"`
+	AtmID          int     `json:"atmId,omitempty" gorm:"atmId"`
+	UserID         int     `json:"userId" gorm:"userId"`
 }

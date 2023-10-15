@@ -6,18 +6,14 @@ import (
 	"github.com/SicParv1sMagna/mdhh_backend/internal/api"
 )
 
-// @title RIpPeakBack
+// @title MDHH_back
 // @version 1.0
-// @description rip course project about alpinists and their expeditions
-
-// @contact.name Alex Chinaev
-// @contact.url https://vk.com/l.chinaev
-// @contact.email ax.chinaev@yandex.ru
+// @description bank branch searcher project for hackaton More.Tech VTB
 
 // @license.name AS IS (NO WARRANTY)
 
-// @host 127.0.0.1E
-// @schemes Zhttp
+// @host 127.0.0.1
+// @schemes http
 // @BasePath /
 func main() {
 	application, err := api.New()

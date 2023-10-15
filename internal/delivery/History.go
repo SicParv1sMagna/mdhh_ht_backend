@@ -2,6 +2,7 @@ package delivery
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/SicParv1sMagna/mdhh_backend/internal/model"
 	"github.com/SicParv1sMagna/mdhh_backend/internal/repository"
@@ -31,7 +32,25 @@ func AddRoute(repository *repository.Repository, c *gin.Context) {
 }
 
 func GetAllRoutes(repository *repository.Repository, c *gin.Context) {
-	routes, err := repository.GetAllRoutes()
+	id, err := strconv.Atoi(c.DefaultQuery("user_id", ""))
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  "fail",
+			"message": err.Error(),
+		})
+		return
+	}
+
+	if id < 0 {
+		c.JSON(http.StatusNotFound, gin.H{
+			"status":  "fail",
+			"message": err.Error(),
+		})
+		return
+	}
+
+	routes, err := repository.GetAllRoutesByUserId(id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return
