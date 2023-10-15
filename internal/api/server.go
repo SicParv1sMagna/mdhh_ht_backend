@@ -52,10 +52,14 @@ func (a *Application) StartServer() {
 
 	api := router.Group("/api")
 	{
-		user := router.Group("/user")
+		user := router.Group("/users")
 		{
 			user.POST("/logout", func(ctx *gin.Context) {
 				delivery.LogoutUser(a.repository, store, ctx)
+			})
+
+			user.POST("/get-user-by-id", func(ctx *gin.Context) {
+				delivery.GetUserById(a.repository, store, ctx)
 			})
 		}
 

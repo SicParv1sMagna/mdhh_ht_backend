@@ -214,3 +214,38 @@ func ResendConfirmationCode(repository *repository.Repository, c *gin.Context, s
 		"message": "проверьте вашу почту",
 	})
 }
+
+func GetUserById(repository *repository.Repository, store *sessions.CookieStore, c *gin.Context) {
+	session, err := store.Get(c.Request, "J_SESSION")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	userID := session.Values["userID"]
+	if userID == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"message": "пользователь не авторизован",
+		})
+		return
+	}
+
+	id, ok := userID.(int)
+	if !ok {
+		c.JSON(http.StatusBadRequest, errors.New("неверный идентифиактор пользователь").Error())
+		return
+	}
+
+	if id < 1 {
+		c.JSON(http.StatusBadRequest, errors.New("id пользователя не может быть отрицательным").Error())
+		return
+	}
+
+	user, err := repository.GetUserById(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
+}

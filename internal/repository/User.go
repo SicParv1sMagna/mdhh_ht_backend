@@ -50,3 +50,14 @@ func (r *Repository) UpdateUserAccessToken(email, code string) error {
 
 	return nil
 }
+
+func (r *Repository) GetUserById(id int) (model.User, error) {
+	var user model.User
+
+	err := r.db.Table("User").Where("User_ID=?", id).First(&user).Error
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
+}
