@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/SicParv1sMagna/mdhh_backend/internal/pkg/middleware/auth"
 	"github.com/SicParv1sMagna/mdhh_backend/internal/pkg/middleware/cors"
 	"log"
 
@@ -53,7 +54,7 @@ func (a *Application) StartServer() {
 	}
 
 	api := router.Group("/api")
-	//api.Use(auth.AuthCheck(store))
+	api.Use(auth.AuthCheck(store))
 	{
 		user := api.Group("/users")
 		{

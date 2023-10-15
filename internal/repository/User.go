@@ -25,7 +25,7 @@ func (r *Repository) CreateUser(user model.User) error {
 func (r *Repository) GetUserByToken(code string) (model.User, error) {
 	var user model.User
 
-	err := r.db.Table("User").Where("AccessToken = ?", code).First(&user).Error
+	err := r.db.Table("User").Where("accesstoken = ?", code).First(&user).Error
 	if err != nil {
 		return user, err
 	}

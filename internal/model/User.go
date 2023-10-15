@@ -10,5 +10,5 @@ type User struct {
 	RepeatPassword string `json:"rPassword" gorm:"-"`
 	IsConfirmed    bool   `json:"-"`
 	AccessToken    string `json:"-" gorm:"column:accesstoken"`
-	LegalEntity    bool   `json:"LegalEntity" gorm:"column:legalentity"`
+	LegalEntity    bool   `json:"LegalEntity" gorm:"column:LegalEntity"`
 }
