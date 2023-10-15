@@ -1,11 +1,11 @@
 package api
 
 import (
+	"github.com/SicParv1sMagna/mdhh_backend/internal/pkg/middleware/cors"
 	"log"
 
 	"github.com/SicParv1sMagna/mdhh_backend/internal/delivery"
 	emailsender "github.com/SicParv1sMagna/mdhh_backend/internal/pkg/middleware/emailConfirmation"
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/sessions"
 )
@@ -15,12 +15,14 @@ func (a *Application) StartServer() {
 	store := sessions.NewCookieStore([]byte("SuperSecretKey"))
 
 	// Настройка CORS
-	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:3000"} // Добавьте адрес клиента
-	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE"}
-	config.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
-	config.AllowCredentials = true
-	router.Use(cors.New(config))
+	//config := cors.DefaultConfig()
+	//config.AllowOrigins = []string{"http://localhost:3000"} // Добавьте адрес клиента
+	//config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE"}
+	//config.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
+	//config.AllowCredentials = true
+	//router.Use(cors.New(config))
+
+	router.Use(cors.CORSMiddleware())
 
 	sender, err := emailsender.New()
 	if err != nil {
@@ -51,8 +53,9 @@ func (a *Application) StartServer() {
 	}
 
 	api := router.Group("/api")
+	//api.Use(auth.AuthCheck(store))
 	{
-		user := router.Group("/users")
+		user := api.Group("/users")
 		{
 			user.POST("/logout", func(ctx *gin.Context) {
 				delivery.LogoutUser(a.repository, store, ctx)
@@ -109,17 +112,17 @@ func (a *Application) StartServer() {
 				delivery.SearchAtmByName(a.repository, ctx)
 			})
 		}
+	}
 
-		moderator := api.Group("/moderator")
-		{
-			moderator.POST("/talon", func(ctx *gin.Context) {
-				delivery.AddTalon(a.repository, ctx)
-			})
+	moderator := api.Group("/moderator")
+	{
+		moderator.POST("/talon", func(ctx *gin.Context) {
+			delivery.AddTalon(a.repository, ctx)
+		})
 
-			moderator.DELETE("/talon", func(ctx *gin.Context) {
-				delivery.DeleteTalon(a.repository, ctx)
-			})
-		}
+		moderator.DELETE("/talon", func(ctx *gin.Context) {
+			delivery.DeleteTalon(a.repository, ctx)
+		})
 	}
 
 	err = router.Run()

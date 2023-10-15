@@ -147,7 +147,7 @@ func AuthUser(repository *repository.Repository, store *sessions.CookieStore, c 
 		Path:     "/",
 		MaxAge:   3600 * 3,
 		HttpOnly: true,
-		SameSite: http.SameSiteStrictMode,
+		//SameSite: http.SameSiteNoneMode,
 	}
 
 	session.Values["userID"] = candidate.User_ID
