@@ -203,11 +203,13 @@ func ResendConfirmationCode(repository *repository.Repository, c *gin.Context, s
 	err := s.SendConfirmationEmail(uniqueCode, uEmail)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, err.Error())
+		return
 	}
 
 	err = repository.UpdateUserAccessToken(uEmail, uniqueCode)
 	if err != nil {
-		c.JSON(http.StatusOK, err.Error())
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -248,4 +250,115 @@ func GetUserById(repository *repository.Repository, store *sessions.CookieStore,
 	}
 
 	c.JSON(http.StatusOK, user)
+}
+
+func EditUserData(repository *repository.Repository, store *sessions.CookieStore, c *gin.Context) {
+	session, err := store.Get(c.Request, "J_SESSION")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	userID := session.Values["userID"]
+	if userID == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"message": "Пользователь не авторизован",
+		})
+		return
+	}
+
+	id, ok := userID.(int)
+	if !ok {
+		c.JSON(http.StatusBadRequest, errors.New("неверный идентификатор пользователя").Error())
+		return
+	}
+
+	if id < 1 {
+		c.JSON(http.StatusBadRequest, errors.New("id пользователя не может быть отрицательным").Error)
+		return
+	}
+
+	var jsonData map[string]interface{}
+	if err := c.BindJSON(&jsonData); err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	newFirstName, ok := jsonData["firstname"].(string)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, errors.New("ошибка при получении имени").Error())
+		return
+	}
+
+	newSecondName, ok := jsonData["secondname"].(string)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, errors.New("ошибка при получении фамилии").Error())
+		return
+	}
+
+	newEmail, ok := jsonData["email"].(string)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, errors.New("ошибка при получении email").Error())
+		return
+	}
+
+	newLegalEntity, ok := jsonData["legalentity"].(bool)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, errors.New("ошибка при получении вашего статуса").Error())
+		return
+	}
+
+	user := &model.User{
+		FirstName:   newFirstName,
+		SecondName:  newSecondName,
+		Email:       newEmail,
+		LegalEntity: newLegalEntity,
+	}
+
+	err = repository.UpdateUserData(user)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "данные обновлены",
+	})
+}
+
+func DeleteUser(repository *repository.Repository, store *sessions.CookieStore, c *gin.Context) {
+	session, err := store.Get(c.Request, "J_SESSION")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	userID, ok := session.Values["userID"]
+	if !ok {
+		c.JSON(http.StatusUnauthorized, "пользователь не авторизован")
+		return
+	}
+
+	userIDInt, ok := userID.(int)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, "неверный формат идентификатора пользователя")
+		return
+	}
+
+	session.Options.MaxAge = -1
+	err = session.Save(c.Request, c.Writer)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	err = repository.DeleteUser(userIDInt)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "удален",
+	})
 }
