@@ -144,9 +144,9 @@ func AuthUser(repository *repository.Repository, store *sessions.CookieStore, c 
 	}
 
 	session.Options = &sessions.Options{
-		Path:     "/",
-		MaxAge:   3600 * 3,
-		HttpOnly: true,
+		Path:   "/",
+		MaxAge: 3600 * 3,
+		//HttpOnly: true,
 		//SameSite: http.SameSiteNoneMode,
 	}
 
