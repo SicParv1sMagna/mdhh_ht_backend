@@ -17,7 +17,7 @@ func (a *Application) StartServer() {
 
 	// Настройка CORS
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:3000"} // Добавьте адрес клиента
+	config.AllowOrigins = []string{"http://localhost"} // Добавьте адрес клиента
 	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE"}
 	config.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
 	config.AllowCredentials = true
@@ -103,17 +103,17 @@ func (a *Application) StartServer() {
 				delivery.SearchAtmByName(a.repository, ctx)
 			})
 		}
+	}
 
-		moderator := api.Group("/moderator")
-		{
-			moderator.POST("/talon", func(ctx *gin.Context) {
-				delivery.AddTalon(a.repository, ctx)
-			})
+	moderator := api.Group("/moderator")
+	{
+		moderator.POST("/talon", func(ctx *gin.Context) {
+			delivery.AddTalon(a.repository, ctx)
+		})
 
-			moderator.DELETE("/talon", func(ctx *gin.Context) {
-				delivery.DeleteTalon(a.repository, ctx)
-			})
-		}
+		moderator.DELETE("/talon", func(ctx *gin.Context) {
+			delivery.DeleteTalon(a.repository, ctx)
+		})
 	}
 
 	err = router.Run()
