@@ -113,6 +113,18 @@ func (a *Application) StartServer() {
 				delivery.SearchAtmByName(a.repository, ctx)
 			})
 		}
+
+		history := api.Group("/history")
+		{
+			history.POST("/post-new-route", func(ctx *gin.Context) {
+				delivery.AddRoute(a.repository, ctx)
+			})
+
+			atm.GET("/get-all-routes", func(ctx *gin.Context) {
+				delivery.GetAllRoutes(a.repository, ctx)
+			})
+		}
+
 	}
 
 	moderator := api.Group("/moderator")
