@@ -24,7 +24,7 @@ import (
 //}
 
 func pushNotification(response model.BusinessResponse) {
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	conn, err := amqp.Dial("amqp://guest:guest@81.177.135.38:5672/")
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 
